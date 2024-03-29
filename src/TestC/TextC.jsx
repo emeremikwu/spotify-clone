@@ -1,8 +1,9 @@
 import React from 'react';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import PropTypes from 'prop-types';
 
 function TestC(props) {
-  console.log(props);
+  // console.log(props);
 
   const { h } = props;
   return (
@@ -15,6 +16,10 @@ function TestC(props) {
 
 TestC.propTypes = {
   h: PropTypes.string,
+};
+
+TestC.defaultProps = {
+  h: '',
 };
 
 export default TestC;

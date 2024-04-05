@@ -11,7 +11,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 const clientId = '3cba2013d88445e998cec4dbefb580e6';
-const clientSecret = 'a7c977db8c974a7b84f8abb6e08869f4';
+const clientSecret = '';
 /* const response_type = 'code'; */
 const redirect_uri = 'http://localhost:3000/';
 const scopes = ['user-read-private', 'user-read-email', 'user-library-read', 'user-library-modify', 'user-read-playback-state', 'user-modify-playback-state', 'user-read-playback-position'];
@@ -81,8 +81,9 @@ app.post('/refresh', (req, res) => {
       });
     },
     (err) => {
-      console.log(err);
-      return res.sendStatus(400);
+      const errormsg = `${err.body.error}: ${err.body.error_description}`;
+      console.error(errormsg);
+      return res.status(400).send(errormsg);
     },
   );
 });

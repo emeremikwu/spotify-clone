@@ -5,14 +5,14 @@ import Dashboard from './Dashboard';
 import useAuth, { AuthContext } from './useAuth';
 
 function App() {
-  const code = new URLSearchParams(window.location.search).get('code');
+  const queryCode = new URLSearchParams(window.location.search).get('code');
 
   const {
-    accessToken, refreshToken, expiresIn, authUrl,
-  } = useAuth(code);
+    accessToken, refreshToken, expiresIn, authUrl, code,
+  } = useAuth(queryCode);
 
   const auth = useMemo(() => ({
-    accessToken, refreshToken, expiresIn, authUrl,
+    accessToken, refreshToken, expiresIn, authUrl, code,
   }));
 
   return (

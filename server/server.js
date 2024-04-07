@@ -11,23 +11,16 @@ app.use(cors());
 app.use(bodyParser.json());
 
 const clientId = '3cba2013d88445e998cec4dbefb580e6';
-const clientSecret = '';
+const clientSecret = '🤡';
 /* const response_type = 'code'; */
-const redirect_uri = 'http://localhost:3000/';
+const redirectUri = 'http://localhost:3000/';
 const scopes = ['user-read-private', 'user-read-email', 'user-library-read', 'user-library-modify', 'user-read-playback-state', 'user-modify-playback-state', 'user-read-playback-position'];
 
-const credentials = {
-  redirectUri: redirect_uri,
+const spotifyApi = new SpotifyWebApi({
+  redirectUri,
   clientId,
   clientSecret,
-};
-const spotifyApi = new SpotifyWebApi(credentials);
-
-/* const redirectlogin = (req, res) => {
-  console.log('redirecting...');
-  res.redirect(authorizeURL);
-  res.status();
-}; */
+});
 
 app.get('/login', (req, res) => {
   const authorizeURL = spotifyApi.createAuthorizeURL(scopes, uuidv4().toString());
@@ -36,10 +29,10 @@ app.get('/login', (req, res) => {
 
 app.post('/login', (req, res) => {
   const { code } = req.body;
-  /* if (code === 'undefined' || !code) {
-    console.log('no code provided');
-    return redirectlogin(req, res);
-  } */
+  if (code === 'undefined' || !code) {
+    console.error('no code provided');
+    return res.status(400).send('code is required');
+  }
 
   spotifyApi.authorizationCodeGrant(code)
     .then(
@@ -52,6 +45,7 @@ app.post('/login', (req, res) => {
           access_token: data.body.access_token,
           refresh_token: data.body.refresh_token,
           expires_in: data.body.expires_in,
+          clientId,
         });
       },
       (err) => {
@@ -61,7 +55,7 @@ app.post('/login', (req, res) => {
       },
     );
 
-  return null;
+  return undefined;
 });
 
 app.post('/refresh', (req, res) => {
@@ -78,6 +72,7 @@ app.post('/refresh', (req, res) => {
       res.json({
         access_token: data.body.access_token,
         expires_in: data.body.expires_in,
+        clientId,
       });
     },
     (err) => {

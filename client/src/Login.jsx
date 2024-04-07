@@ -15,7 +15,7 @@ function SpinnerComponent() {
 }
 
 function Login() {
-  const { authUrl } = useContext(AuthContext);
+  const { authUrl, error } = useContext(AuthContext);
 
   return (
 
@@ -24,10 +24,11 @@ function Login() {
       style={{ minHeight: '100vh' }}
     >
       <a
-        className={`btn btn-outline-success btn-lg${authUrl ? '' : ' disabled'}`}
+        className={`btn ${error ? 'btn-outline-danger' : 'btn-outline-success'} btn-lg${authUrl ? '' : ' disabled'}`}
         href={authUrl}
       >
-        {authUrl ? 'Login with Spotify' : <SpinnerComponent />}
+        {error ? 'URL Error' : ''}
+        {authUrl ? 'Login With Spotify' : <SpinnerComponent />}
       </a>
 
     </Container>

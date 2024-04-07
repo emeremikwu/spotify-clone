@@ -8,11 +8,11 @@ function App() {
   const queryCode = new URLSearchParams(window.location.search).get('code');
 
   const {
-    accessToken, refreshToken, expiresIn, authUrl, code,
+    tokens, expiresIn, authUrl, code, error,
   } = useAuth(queryCode);
 
   const auth = useMemo(() => ({
-    accessToken, refreshToken, expiresIn, authUrl, code,
+    tokens, expiresIn, authUrl, code, error,
   }));
 
   return (

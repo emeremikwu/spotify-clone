@@ -14,7 +14,7 @@ const clientId = '3cba2013d88445e998cec4dbefb580e6';
 const clientSecret = '🤡';
 /* const response_type = 'code'; */
 const redirectUri = 'http://localhost:3000/';
-const scopes = ['user-read-private', 'user-read-email', 'user-library-read', 'user-library-modify', 'user-read-playback-state', 'user-modify-playback-state', 'user-read-playback-position'];
+const scopes = ['user-read-private', 'user-read-email', 'user-library-read', 'user-library-modify', 'user-read-playback-state', 'user-modify-playback-state', 'user-read-playback-position', 'streaming'];
 
 const spotifyApi = new SpotifyWebApi({
   redirectUri,
@@ -65,13 +65,13 @@ app.post('/refresh', (req, res) => {
   spotifyApi.refreshAccessToken().then(
     (data) => {
       console.log('The access token has been refreshed!');
-
+      const { access_token, expires_in } = data.body;
       // do we even need this if it will change per request?
-      spotifyApi.setAccessToken(data.body.access_token);
+      spotifyApi.setAccessToken(access_token);
 
       res.json({
-        access_token: data.body.access_token,
-        expires_in: data.body.expires_in,
+        access_token,
+        expires_in,
         clientId,
       });
     },

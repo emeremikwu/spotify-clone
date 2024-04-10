@@ -23,6 +23,7 @@ function useAuth(queryCode) {
     when its removed from the url, the code from the query string is no longer accessible
     this causes app.jsx to rerender <Login /> instead of <Dashboard />
   */
+
   useEffect(() => {
     if (!queryCode || queryCode.length === 0) return;
     setCode(queryCode);
@@ -83,7 +84,7 @@ function useAuth(queryCode) {
           }));
           setExpiresIn(res.data.expires_in);
         }).catch((err) => {
-          console.err(err);
+          console.error(err);
           setError(err);
         });
     }, (expiresIn - 60) * 1000); // refresh token 60 seconds before it expires

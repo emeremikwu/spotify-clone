@@ -1,27 +1,96 @@
 /* eslint-disable no-unused-vars */
-import React, { useContext, useEffect, useState } from 'react';
+import React, {
+  useContext, useEffect, useState, useCallback,
+} from 'react';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
 import SpotifyWebApi from 'spotify-web-api-node';
+import axios from 'axios';
 import { AuthContext } from './useAuth';
 import TrackSearchResult from './TrackSearchResult';
+import Player from './Player';
 
 const spotifyWebApi = new SpotifyWebApi();
+
+function mapTrack(track) {
+  const {
+    artists, name, uri, album,
+  } = track;
+
+  // get smallest album image
+  const smallestAlbumImage = album.images.reduce((currentSmallest, currentAlbum) => {
+    // probabaly unnecessary but just in case
+    const smallestArea = currentSmallest.width * currentSmallest.height;
+    const currentArea = currentAlbum.width * currentAlbum.height;
+    return currentArea < smallestArea ? currentAlbum : currentSmallest;
+  });
+
+  return {
+    artist: artists[0],
+    title: name,
+    uri,
+    albumUri: smallestAlbumImage.url,
+  };
+}
 
 // eslint-disable-next-line react/prop-types
 function Dashboard() {
   const { accessToken, clientId } = useContext(AuthContext).tokens;
-  // console.log('d-access:', accessToken);
   const [search, setSearch] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [currentTrack, setCurrentTrack] = useState(null);
+  const [lyrics, setLyrics] = useState('Search for a song or artist');
 
-  console.log(searchResults);
+  /*
+    Sets current track based off of track object
+    should be passed to the TrackSearchResult component
+    differs from setTrackCallback because its to be used to start playback
+   */
+  const chooseTrackCallback = useCallback((track) => {
+    setCurrentTrack(track);
+    setSearch('');
+    setLyrics('Loading lyrics...');
+  }, []);
 
+  /*
+    Sets current track based off of track uri
+    Should be passed to the player componen.
+    Differes from chooseTrackCallback because its to be used to set the current track
+    when the current song is changed by the player (e.g remotely)
+  */
+  const setTrackByUriCallback = useCallback((trackUri) => {
+    spotifyWebApi.getTrack(trackUri).then((res) => {
+      setCurrentTrack(mapTrack(res.body));
+    });
+  }, []);
+
+  /* useEffect(() => {
+    if (!currentTrack) return;
+    console.log('effect: ', currentTrack.title);
+  }, [currentTrack]); */
+
+  // Get lyrics when the current track changes
+  /* useEffect(() => {
+    if (!currentTrack) return;
+    axios
+      .get('http://localhost:3001/lyrics', {
+        params: {
+          track: currentTrack.title,
+          artist: currentTrack.artist.name,
+        },
+      })
+      .then((res) => {
+        setLyrics(res.data.lyrics);
+      });
+  }); */
+
+  // Set the access token on the spotifyWebApi object when present
   useEffect(() => {
     if (!accessToken) return;
     spotifyWebApi.setCredentials({ accessToken, clientId });
   }, [accessToken]);
 
+  // Search for tracks when the search term changes
   useEffect(() => () => {
     if (!search) return setSearchResults([]);
     if (!accessToken) return undefined;
@@ -29,33 +98,14 @@ function Dashboard() {
 
     spotifyWebApi.searchTracks(search).then((res) => {
       if (cancel) return;
-      setSearchResults(res.body.tracks.items.map((track) => {
-        const {
-          artists, name, uri, album,
-        } = track;
-
-        // get smallest album image
-        const smallestAlbumImage = album.images.reduce((currentSmallest, currentAlbum) => {
-          // probabaly unnecessary but just in case
-          const smallestArea = currentSmallest.width * currentSmallest.height;
-          const currentArea = currentAlbum.width * currentAlbum.height;
-          return currentArea < smallestArea ? currentAlbum : currentSmallest;
-        });
-
-        return {
-          artist: artists[0],
-          title: name,
-          uri,
-          albumUri: smallestAlbumImage.url,
-        };
-      }));
+      setSearchResults(res.body.tracks.items.map((track) => mapTrack(track)));
     });
 
     return () => { cancel = true; };
   }, [search, accessToken]);
 
   return (
-    <Container className="d-flex flex-column">
+    <Container className="d-flex flex-column py-2" style={{ height: '100vh' }}>
       <Form.Control
         type="search"
         placeholder="Search Songs/Artists"
@@ -64,10 +114,19 @@ function Dashboard() {
       />
       <div className="flex-grow-1 my-2" style={{ overflowY: 'auto' }}>
         {searchResults.map((track) => (
-          <TrackSearchResult track={track} key={track.uri} />
+          <TrackSearchResult
+            track={track}
+            key={track.uri}
+            chooseTrack={chooseTrackCallback}
+          />
         ))}
+        {searchResults.length === 0 && (
+          <div className="text-center" style={{ whiteSpace: 'pre' }}>
+            {lyrics}
+          </div>
+        )}
       </div>
-      <div>Bottom</div>
+      <div><Player track={currentTrack} setTrackByUri={setTrackByUriCallback} /></div>
     </Container>
   );
 }

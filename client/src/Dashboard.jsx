@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import React, {
   useContext, useEffect, useState, useCallback,
 } from 'react';
@@ -64,34 +63,14 @@ function Dashboard() {
     });
   }, []);
 
-  /* useEffect(() => {
-    if (!currentTrack) return;
-    console.log('effect: ', currentTrack.title);
-  }, [currentTrack]); */
-
-  // Get lyrics when the current track changes
-  /* useEffect(() => {
-    if (!currentTrack) return;
-    axios
-      .get('http://localhost:3001/lyrics', {
-        params: {
-          track: currentTrack.title,
-          artist: currentTrack.artist.name,
-        },
-      })
-      .then((res) => {
-        setLyrics(res.data.lyrics);
-      });
-  }); */
-
-  // Set the access token on the spotifyWebApi object when present
+  // Access Token Setup
   useEffect(() => {
     if (!accessToken) return;
     spotifyWebApi.setCredentials({ accessToken, clientId });
   }, [accessToken]);
 
-  // Search for tracks when the search term changes
-  useEffect(() => () => {
+  // Search Functionality
+  useEffect(() => {
     if (!search) return setSearchResults([]);
     if (!accessToken) return undefined;
     let cancel = false;
@@ -103,6 +82,31 @@ function Dashboard() {
 
     return () => { cancel = true; };
   }, [search, accessToken]);
+
+  // Lyrics Retrieval
+  useEffect(() => {
+    if (!currentTrack) return;
+    axios
+      .get('http://localhost:3001/lyrics', {
+        params: {
+          track: currentTrack.title,
+          artist: currentTrack.artist.name,
+          useGenius: true,
+        },
+      })
+      .then((res) => {
+        setLyrics(res.data.lyrics);
+      }).catch((err) => {
+        console.error(err);
+        setLyrics('Error fetching lyrics');
+      });
+  }, [currentTrack]);
+
+  // Debug: Log the current track when it changes
+  useEffect(() => {
+    if (!currentTrack) return;
+    console.log(`Now Playing: ${currentTrack.title} by ${currentTrack.artist.name}`);
+  }, [currentTrack]);
 
   return (
     <Container className="d-flex flex-column py-2" style={{ height: '100vh' }}>
